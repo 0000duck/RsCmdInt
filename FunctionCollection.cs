@@ -53,7 +53,7 @@ namespace RST.Framework
                 // Create first small button
                 CommandBarButton buttonFirst = new CommandBarButton("Start server", "Start server");
                 buttonFirst.HelpText = "Click to start socket-server";
-                buttonFirst.Image = Image.FromFile(@"H:\Examensarbete\knapp.png");
+                buttonFirst.Image = Image.FromFile(@"H:\Examensarbete\knapp.jpg");
                 buttonFirst.DefaultEnabled = true;
                 ribbonGroup.Controls.Add(buttonFirst);
 
@@ -118,6 +118,55 @@ namespace RST.Framework
             RsIrc5Controller rscontroller = (RsIrc5Controller)task.Parent;
             //while (rscontroller.SystemState.ToString() != "Started")
                 //DelayTask();                                    
+        }
+
+        public static void LoadModuleFromFile(string moduleFilePath)
+        {
+            //Get Station object           
+            Station station = Project.ActiveProject as Station;
+
+            //Check for existance of Module 
+            if (System.IO.File.Exists(moduleFilePath))
+            {
+                try
+                {
+                    RsTask task = station.ActiveTask;
+                    if (task != null)
+                    {
+                        RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)task.Parent;
+                        ABB.Robotics.Controllers.Controller controller =
+                            new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
+
+                        if (controller != null)
+                        {
+                            //Request Mastership           
+                            using (ABB.Robotics.Controllers.Mastership m =
+                                    ABB.Robotics.Controllers.Mastership.Request(controller.Rapid))
+                            {
+                                if (controller.Rapid.ExecutionStatus ==
+                                           ABB.Robotics.Controllers.RapidDomain.ExecutionStatus.Stopped)
+                                {
+                                    //Load Module if Rapid Execution State is stopped
+                                    ABB.Robotics.Controllers.RapidDomain.Task vTask = controller.Rapid.GetTask(task.Name);
+                                    bool loadResult = vTask.LoadModuleFromFile(moduleFilePath,
+                                        ABB.Robotics.Controllers.RapidDomain.RapidLoadMode.Replace);
+                                    Thread.Sleep(1000);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (ABB.Robotics.GeneralException gex)
+                {
+                    Logger.AddMessage(new LogMessage(gex.Message.ToString()));
+                }
+
+                catch (Exception ex)
+                {
+                    Logger.AddMessage(new LogMessage(ex.Message.ToString()));
+                }
+
+            }
         }
 
         private static async Task DelayTask()
@@ -291,14 +340,25 @@ namespace RST.Framework
             try
             {
                 Simulator.Start();
-
-
             }
 
             catch (Exception exception)
             {
                 Logger.AddMessage(new LogMessage(exception.Message.ToString()));
             }
+        }
+
+        public static void Logg()
+        {
+            LogMessage[] log;
+            log = Logger.GetMessages("Simulation");
+            string text = log[1].Text;
+            int i = log.GetLength(0);
+            for (int j = 0; j < i; j++ )
+            {
+                Logger.AddMessage(new LogMessage(log[j].Text.ToString() + " At: " +log[j].TimeStamp.ToString(), "MyKey"));
+            }
+     
         }
 
         public static void AutoConfigurePath(string pathName)
@@ -459,6 +519,30 @@ namespace RST.Framework
             {
                 Project.UndoContext.EndUndoStep();
             }
+        }
+
+        public static void createCollisionSet(string firstobjects, string secondobjects)
+        {
+            Station station = Project.ActiveProject as Station;
+
+            CollisionSet cs = new CollisionSet();
+            cs.Name = "CollisionSet";
+
+            cs.NearMissDistance = 0.01;
+
+            cs.Active = true;
+
+            station.CollisionSets.Add(cs);
+
+            
+            GraphicComponent a,b;
+            station.GraphicComponents.TryGetGraphicComponent(firstobjects, out a);
+            station.GraphicComponents.TryGetGraphicComponent(secondobjects,out b);
+            cs.FirstGroup.Add(a);
+            cs.SecondGroup.Add(b);
+
+            CollisionDetector.CheckCollisions(station);
+            CollisionDetector.CheckCollisions(cs);
         }
 
     }
