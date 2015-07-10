@@ -53,7 +53,7 @@ namespace RST.Framework
                 // Create first small button
                 CommandBarButton buttonFirst = new CommandBarButton("Start server", "Start server");
                 buttonFirst.HelpText = "Click to start socket-server";
-                buttonFirst.Image = Image.FromFile(@"H:\Examensarbete\knapp.png");
+                buttonFirst.Image = Image.FromFile(@"H:\Examensarbete\knapp.jpg");
                 buttonFirst.DefaultEnabled = true;
                 ribbonGroup.Controls.Add(buttonFirst);
 
@@ -111,13 +111,62 @@ namespace RST.Framework
 
                 Logger.AddMessage(new LogMessage(test, "MyKey"));
 
-                
+
             }
-                
+
             RsTask task = station.ActiveTask;
             RsIrc5Controller rscontroller = (RsIrc5Controller)task.Parent;
             //while (rscontroller.SystemState.ToString() != "Started")
-                //DelayTask();                                    
+            //DelayTask();                                    
+        }
+
+        public static void LoadModuleFromFile(string moduleFilePath)
+        {
+            //Get Station object           
+            Station station = Project.ActiveProject as Station;
+
+            //Check for existance of Module 
+            if (System.IO.File.Exists(moduleFilePath))
+            {
+                try
+                {
+                    RsTask task = station.ActiveTask;
+                    if (task != null)
+                    {
+                        RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)task.Parent;
+                        ABB.Robotics.Controllers.Controller controller =
+                            new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
+
+                        if (controller != null)
+                        {
+                            //Request Mastership           
+                            using (ABB.Robotics.Controllers.Mastership m =
+                                    ABB.Robotics.Controllers.Mastership.Request(controller.Rapid))
+                            {
+                                if (controller.Rapid.ExecutionStatus ==
+                                           ABB.Robotics.Controllers.RapidDomain.ExecutionStatus.Stopped)
+                                {
+                                    //Load Module if Rapid Execution State is stopped
+                                    ABB.Robotics.Controllers.RapidDomain.Task vTask = controller.Rapid.GetTask(task.Name);
+                                    bool loadResult = vTask.LoadModuleFromFile(moduleFilePath,
+                                        ABB.Robotics.Controllers.RapidDomain.RapidLoadMode.Replace);
+                                    Thread.Sleep(1000);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (ABB.Robotics.GeneralException gex)
+                {
+                    Logger.AddMessage(new LogMessage(gex.Message.ToString()));
+                }
+
+                catch (Exception ex)
+                {
+                    Logger.AddMessage(new LogMessage(ex.Message.ToString()));
+                }
+
+            }
         }
 
         private static async Task DelayTask()
@@ -130,7 +179,7 @@ namespace RST.Framework
             try
             {
                 //get the active station
-                Station station = Project.ActiveProject as Station;                
+                Station station = Project.ActiveProject as Station;
                 string moduleName = "myModule";
 
                 //create Workobject
@@ -151,9 +200,9 @@ namespace RST.Framework
             Project.UndoContext.BeginUndoStep("CreateTarget");
 
             try
-            {                
+            {
                 // 
-                x = x / 1000; 
+                x = x / 1000;
                 y = y / 1000;
                 z = z / 1000;
 
@@ -174,14 +223,14 @@ namespace RST.Framework
         }
 
         private static void DeleteActiveTargets()
-        {                        
+        {
             Station station = Project.ActiveProject as Station;
 
             try
             {
                 foreach (RsTarget target in station.ActiveTask.Targets)
                 {
-                    station.ActiveTask.Targets.Remove(target);                    
+                    station.ActiveTask.Targets.Remove(target);
                 }
             }
 
@@ -196,15 +245,15 @@ namespace RST.Framework
             Station station = Project.ActiveProject as Station;
 
             try
-            {                                  
+            {
                 foreach (RsTarget target in station.ActiveTask.Targets)
                 {
                     if (target.Name == "robot_home")
                     {
                         Logger.AddMessage(new LogMessage(target.Name, "MyKey"));
-                        targets.Add(target);                                                                        
+                        targets.Add(target);
                     }
-                }                                
+                }
             }
 
             catch (Exception exception)
@@ -219,15 +268,15 @@ namespace RST.Framework
             string ep = station.ActiveTask.EntryPoint;
             RsPathProcedure procMain;
             Logger.AddMessage(new LogMessage(ep, "MyKey"));
-            
-            
+
+
             try
             {
                 //station.ActiveTask = "";
 
-                foreach(RsPathProcedure proc in station.ActiveTask.PathProcedures)
+                foreach (RsPathProcedure proc in station.ActiveTask.PathProcedures)
                 {
-                    
+
 
                     Logger.AddMessage(new LogMessage(proc.ToString(), "MyKey"));
                     procMain = (RsPathProcedure)proc.Copy();
@@ -235,7 +284,7 @@ namespace RST.Framework
                 }
 
 
-                
+
             }
 
             catch (Exception exception)
@@ -246,7 +295,7 @@ namespace RST.Framework
 
         public static void SyncToStation()
         {
-            Station station = Project.ActiveProject as Station;            
+            Station station = Project.ActiveProject as Station;
             RsTask task = station.ActiveTask;
 
             try
@@ -276,7 +325,7 @@ namespace RST.Framework
 
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -291,14 +340,25 @@ namespace RST.Framework
             try
             {
                 Simulator.Start();
-
-
             }
 
             catch (Exception exception)
             {
                 Logger.AddMessage(new LogMessage(exception.Message.ToString()));
             }
+        }
+
+        public static void Logg()
+        {
+            LogMessage[] log;
+            log = Logger.GetMessages("Simulation");
+            string text = log[1].Text;
+            int i = log.GetLength(0);
+            for (int j = 0; j < i; j++)
+            {
+                Logger.AddMessage(new LogMessage(log[j].Text.ToString() + " At: " + log[j].TimeStamp.ToString(), "MyKey"));
+            }
+
         }
 
         public static void AutoConfigurePath(string pathName)
@@ -313,7 +373,7 @@ namespace RST.Framework
                 path.Synchronize = true;
 
                 Logger.AddMessage(new LogMessage(path.Name, "MyKey"));
-                
+
             }
 
             catch (Exception exception)
@@ -321,7 +381,7 @@ namespace RST.Framework
                 Logger.AddMessage(new LogMessage(exception.Message.ToString()));
             }
         }
-        
+
         public static void SyncToVC()
         {
             Station station = Project.ActiveProject as Station;
@@ -354,7 +414,7 @@ namespace RST.Framework
                                 SyncDirection.ToController,
                                 messages);
 
-                            
+
 
                         }
                         catch (Exception)
@@ -398,8 +458,6 @@ namespace RST.Framework
                 // add target to list
                 targets.Add(target);
 
-
-
             }
             catch (Exception exception)
             {
@@ -421,11 +479,11 @@ namespace RST.Framework
                 // Add the path to the ActiveTask.
                 station.ActiveTask.PathProcedures.Add(myPath);
                 myPath.ModuleName = "module1";
-                
+
                 myPath.ShowName = true;
                 myPath.Synchronize = true;
                 myPath.Visible = true;
-                
+
 
 
                 //Make the path procedure as active path procedure
@@ -443,7 +501,7 @@ namespace RST.Framework
 
                 }
                 ArrayList messages = new ArrayList();
-                
+
                 station.ActiveTask.SyncPathProcedure(myPath.ModuleName + "/" + myPath.Name,
                 SyncDirection.ToController,
                 messages);
@@ -461,6 +519,30 @@ namespace RST.Framework
             {
                 Project.UndoContext.EndUndoStep();
             }
+        }
+
+        public static void createCollisionSet(string firstobjects, string secondobjects)
+        {
+            Station station = Project.ActiveProject as Station;
+
+            CollisionSet cs = new CollisionSet();
+            cs.Name = "CollisionSet";
+
+            cs.NearMissDistance = 0.01;
+
+            cs.Active = true;
+
+            station.CollisionSets.Add(cs);
+
+
+            GraphicComponent a, b;
+            station.GraphicComponents.TryGetGraphicComponent(firstobjects, out a);
+            station.GraphicComponents.TryGetGraphicComponent(secondobjects, out b);
+            cs.FirstGroup.Add(a);
+            cs.SecondGroup.Add(b);
+
+            CollisionDetector.CheckCollisions(station);
+            CollisionDetector.CheckCollisions(cs);
         }
 
     }

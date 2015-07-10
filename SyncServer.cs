@@ -95,10 +95,10 @@ namespace RST.Framework
             Console.WriteLine("\nPress ENTER to continue...");
             Console.Read();
         }
-        
+
         private static void ExecuteCommand(string data)
         {
-            String[] parameters;            
+            String[] parameters;
 
             Logger.AddMessage(new LogMessage(data, "MyKey"));
 
@@ -108,7 +108,7 @@ namespace RST.Framework
 
             switch (parameters[0])
             {
-                case "addhome":
+                case "addrobothome":
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
@@ -169,29 +169,11 @@ namespace RST.Framework
 
                     break;
 
-                case "load":
-
-                    FunctionCollection.MainThread.Send((object stat) =>
-                    {
-                        FunctionCollection.Load(parameters[1]); 
-                    }, null);
-
-                    break;
-
                 case "loadmodule":
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.Load(parameters[1]); // edit
-                    }, null);
-
-                    break;
-
-                case "loadprogram":
-
-                    FunctionCollection.MainThread.Send((object stat) =>
-                    {
-                        FunctionCollection.Load(parameters[1]); // edit
+                        FunctionCollection.LoadModuleFromFile(parameters[1]); // edit
                     }, null);
 
                     break;
@@ -231,9 +213,30 @@ namespace RST.Framework
                     }, null);
 
                     break;
+
+                case "checkcollisions":
+
+                    FunctionCollection.MainThread.Send((object stat) =>
+                    {
+                        FunctionCollection.createCollisionSet(parameters[1], parameters[2]);
+                    }, null);
+
+                    break;
+
+                case "logg":
+
+                    FunctionCollection.MainThread.Send((object stat) =>
+                    {
+                        FunctionCollection.Logg();
+                    }, null);
+
+                    break;
+
+
+
             }
         }
-        
+
         public static String GetIpAddress(IPHostEntry host)
         {
             // Get computer host name
