@@ -169,29 +169,11 @@ namespace RST.Framework
 
                     break;
 
-                case "load":
-
-                    FunctionCollection.MainThread.Send((object stat) =>
-                    {
-                        FunctionCollection.Load(parameters[1]); 
-                    }, null);
-
-                    break;
-
                 case "loadmodule":
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.Load(parameters[1]); // edit
-                    }, null);
-
-                    break;
-
-                case "loadprogram":
-
-                    FunctionCollection.MainThread.Send((object stat) =>
-                    {
-                        FunctionCollection.Load(parameters[1]); // edit
+                        FunctionCollection.LoadModuleFromFile(parameters[1]); // edit
                     }, null);
 
                     break;
@@ -231,6 +213,27 @@ namespace RST.Framework
                     }, null);
 
                     break;
+
+                case "checkcollisions":
+
+                    FunctionCollection.MainThread.Send((object stat) =>
+                        {
+                            FunctionCollection.createCollisionSet(parameters[1],parameters[2]);
+                        }, null);
+
+                    break;
+
+                case "logg":
+
+                     FunctionCollection.MainThread.Send((object stat) =>
+                        {
+                            FunctionCollection.Logg();
+                        }, null);
+
+                    break;
+
+
+                
             }
         }
         
