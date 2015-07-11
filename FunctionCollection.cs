@@ -6,7 +6,6 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Threading;
-using System.Threading.Tasks;
 using ABB.Robotics.Math;
 using ABB.Robotics.RobotStudio;
 using ABB.Robotics.RobotStudio.Environment;
@@ -14,6 +13,7 @@ using ABB.Robotics.RobotStudio.Stations;
 using ABB.Robotics.RobotStudio.Stations.Forms;
 using System.Collections.Generic;
 using System.Collections;
+using ABB.Robotics.Controllers.RapidDomain;
 
 namespace RST.Framework
 {
@@ -167,11 +167,6 @@ namespace RST.Framework
                 }
 
             }
-        }
-
-        private static async Task DelayTask()
-        {
-            await Task.Delay(1000);
         }
 
         public static void CreateWorkobject()
@@ -351,7 +346,7 @@ namespace RST.Framework
         public static void Logg()
         {
             LogMessage[] log;
-            log = Logger.GetMessages("Simulation");            
+            log = Logger.GetMessages("Simulation");
             int i = log.GetLength(0);
             for (int j = 0; j < i; j++)
             {
@@ -589,6 +584,48 @@ namespace RST.Framework
             return Simulator.State.ToString();
         }
 
+        public static string saveRapid(string filePath)
+        {
+            string result = "false";
+            try
+            {
+                Station station = Project.ActiveProject as Station;
+                RsTask rsTask = station.ActiveTask;
+                RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)rsTask.Parent;
+
+                ABB.Robotics.Controllers.Controller controller = new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
+
+                Task controllerTask = controller.Rapid.GetTask(rsTask.Name);
+                Directory.CreateDirectory(filePath);
+                int i = 1;
+                while(File.Exists(filePath + "-simulation-" + i)){ i++;}
+                controllerTask.SaveProgramToFile(filePath + "-simulation-" + i);
+                result = "true";
+            }
+            catch (ABB.Robotics.GeneralException)
+            {
+                result = "false";
+            }
+            catch (Exception)
+            {
+                result = "false";
+            }
+            return result;
+
+        }
+
+
+        public static string resetStation()
+        {
+            Station station = Project.ActiveProject as Station;
+            RsTask rsTask = station.ActiveTask;
+            RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)rsTask.Parent;
+
+            ABB.Robotics.Controllers.Controller controller = new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
+
+            Task controllerTask = controller.Rapid.GetTask(rsTask.Name);
+            return "true";
+        }
     }
 }
 
