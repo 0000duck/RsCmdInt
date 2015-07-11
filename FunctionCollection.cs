@@ -111,13 +111,13 @@ namespace RST.Framework
 
                 Logger.AddMessage(new LogMessage(test, "MyKey"));
 
-                
+
             }
-                
+
             RsTask task = station.ActiveTask;
             RsIrc5Controller rscontroller = (RsIrc5Controller)task.Parent;
             //while (rscontroller.SystemState.ToString() != "Started")
-                //DelayTask();                                    
+            //DelayTask();                                    
         }
 
         public static void LoadModuleFromFile(string moduleFilePath)
@@ -179,7 +179,7 @@ namespace RST.Framework
             try
             {
                 //get the active station
-                Station station = Project.ActiveProject as Station;                
+                Station station = Project.ActiveProject as Station;
                 string moduleName = "myModule";
 
                 //create Workobject
@@ -200,9 +200,9 @@ namespace RST.Framework
             Project.UndoContext.BeginUndoStep("CreateTarget");
 
             try
-            {                
+            {
                 // 
-                x = x / 1000; 
+                x = x / 1000;
                 y = y / 1000;
                 z = z / 1000;
 
@@ -223,14 +223,14 @@ namespace RST.Framework
         }
 
         private static void DeleteActiveTargets()
-        {                        
+        {
             Station station = Project.ActiveProject as Station;
 
             try
             {
                 foreach (RsTarget target in station.ActiveTask.Targets)
                 {
-                    station.ActiveTask.Targets.Remove(target);                    
+                    station.ActiveTask.Targets.Remove(target);
                 }
             }
 
@@ -245,15 +245,15 @@ namespace RST.Framework
             Station station = Project.ActiveProject as Station;
 
             try
-            {                                  
+            {
                 foreach (RsTarget target in station.ActiveTask.Targets)
                 {
                     if (target.Name == "robot_home")
                     {
                         Logger.AddMessage(new LogMessage(target.Name, "MyKey"));
-                        targets.Add(target);                                                                        
+                        targets.Add(target);
                     }
-                }                                
+                }
             }
 
             catch (Exception exception)
@@ -268,15 +268,15 @@ namespace RST.Framework
             string ep = station.ActiveTask.EntryPoint;
             RsPathProcedure procMain;
             Logger.AddMessage(new LogMessage(ep, "MyKey"));
-            
-            
+
+
             try
             {
                 //station.ActiveTask = "";
 
-                foreach(RsPathProcedure proc in station.ActiveTask.PathProcedures)
+                foreach (RsPathProcedure proc in station.ActiveTask.PathProcedures)
                 {
-                    
+
 
                     Logger.AddMessage(new LogMessage(proc.ToString(), "MyKey"));
                     procMain = (RsPathProcedure)proc.Copy();
@@ -284,7 +284,7 @@ namespace RST.Framework
                 }
 
 
-                
+
             }
 
             catch (Exception exception)
@@ -295,7 +295,7 @@ namespace RST.Framework
 
         public static void SyncToStation()
         {
-            Station station = Project.ActiveProject as Station;            
+            Station station = Project.ActiveProject as Station;
             RsTask task = station.ActiveTask;
 
             try
@@ -325,7 +325,7 @@ namespace RST.Framework
 
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -351,13 +351,13 @@ namespace RST.Framework
         public static void Logg()
         {
             LogMessage[] log;
-            log = Logger.GetMessages("Simulation");
+            log = Logger.GetMessages("Simulation");            
             int i = log.GetLength(0);
-            for (int j = 0; j < i; j++ )
+            for (int j = 0; j < i; j++)
             {
-                Logger.AddMessage(new LogMessage(log[j].Text.ToString() + " At: " +log[j].TimeStamp.ToString(), "MyKey"));
+                Logger.AddMessage(new LogMessage(log[j].Text.ToString(), "MyKey"));
             }
-     
+
         }
 
         public static void AutoConfigurePath(string pathName)
@@ -372,7 +372,7 @@ namespace RST.Framework
                 path.Synchronize = true;
 
                 Logger.AddMessage(new LogMessage(path.Name, "MyKey"));
-                
+
             }
 
             catch (Exception exception)
@@ -380,7 +380,7 @@ namespace RST.Framework
                 Logger.AddMessage(new LogMessage(exception.Message.ToString()));
             }
         }
-        
+
         public static void SyncToVC()
         {
             Station station = Project.ActiveProject as Station;
@@ -413,7 +413,7 @@ namespace RST.Framework
                                 SyncDirection.ToController,
                                 messages);
 
-                            
+
 
                         }
                         catch (Exception)
@@ -478,11 +478,11 @@ namespace RST.Framework
                 // Add the path to the ActiveTask.
                 station.ActiveTask.PathProcedures.Add(myPath);
                 myPath.ModuleName = "module1";
-                
+
                 myPath.ShowName = true;
                 myPath.Synchronize = true;
                 myPath.Visible = true;
-                
+
 
 
                 //Make the path procedure as active path procedure
@@ -500,7 +500,7 @@ namespace RST.Framework
 
                 }
                 ArrayList messages = new ArrayList();
-                
+
                 station.ActiveTask.SyncPathProcedure(myPath.ModuleName + "/" + myPath.Name,
                 SyncDirection.ToController,
                 messages);
@@ -525,23 +525,68 @@ namespace RST.Framework
             Station station = Project.ActiveProject as Station;
 
             CollisionSet cs = new CollisionSet();
+            CollisionDetector.Collision += new CollisionEventHandler(myCollisionEventHandler);
             cs.Name = "CollisionSet";
 
-            cs.NearMissDistance = 0.01;
+            cs.NearMissDistance = 0.1;
 
             cs.Active = true;
 
             station.CollisionSets.Add(cs);
 
-            
-            GraphicComponent a,b;
+
+            GraphicComponent a, b;
             station.GraphicComponents.TryGetGraphicComponent(firstobjects, out a);
-            station.GraphicComponents.TryGetGraphicComponent(secondobjects,out b);
+            station.GraphicComponents.TryGetGraphicComponent(secondobjects, out b);
             cs.FirstGroup.Add(a);
             cs.SecondGroup.Add(b);
 
             CollisionDetector.CheckCollisions(station);
             CollisionDetector.CheckCollisions(cs);
+        }
+
+        private static void myCollisionEventHandler(object sender, CollisionEventArgs e)
+        {
+            switch (e.CollisionEvent)
+            {
+                case CollisionEvent.CollisionStarted:
+                    Logger.AddMessage
+                    (new LogMessage("Collision started by collision set: '" + e.CollisionSet.Name
+                    + "' First part : '" + e.FirstPart.Name
+                    + "' Second part: '" + e.SecondPart.Name + "'"));
+                    break;
+                case CollisionEvent.CollisionEnded:
+                    Logger.AddMessage(new LogMessage("Collision ended by collision set: '" + e.CollisionSet.Name
+                    + "' First part : '" + e.FirstPart.Name
+                    + "' Second part: '" + e.SecondPart.Name + "'"));
+                    break;
+                case CollisionEvent.NearMissStarted:
+                    Logger.AddMessage(new LogMessage("Near Miss started by collision set: '" + e.CollisionSet.Name
+                    + "' First part : '" + e.FirstPart.Name
+                    + "' Second part: '" + e.SecondPart.Name + "'"));
+                    break;
+                case CollisionEvent.NearMissEnded:
+                    Logger.AddMessage(new LogMessage("Near Miss ended by collision set: '" + e.CollisionSet.Name
+                    + "' First part : '"
+                    + e.FirstPart.Name + "' Second part: '" + e.SecondPart.Name + "'"));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public static string checkControllerStatus()
+        {
+            Station station = Station.ActiveStation as Station;
+            RsTask task = station.ActiveTask;
+            RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)task.Parent;
+
+            return rsIrc5Controller.SystemState.ToString();
+        }
+
+        public static string checkSimulationStatus()
+        {
+            return Simulator.State.ToString();
         }
 
     }
