@@ -352,7 +352,6 @@ namespace RST.Framework
         {
             LogMessage[] log;
             log = Logger.GetMessages("Simulation");
-            string text = log[1].Text;
             int i = log.GetLength(0);
             for (int j = 0; j < i; j++ )
             {
