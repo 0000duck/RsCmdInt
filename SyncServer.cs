@@ -71,19 +71,16 @@ namespace RST.Framework
                         if (data.IndexOf("<EOF>") > -1)
                         {
                             ExecuteCommand(data);
+
+                            byte[] msg = Encoding.ASCII.GetBytes(data);
+
+                            handler.Send(msg);
+                            handler.Shutdown(SocketShutdown.Both);
+                            handler.Close();
+
                             break;
                         }
                     }
-
-                    // Show the data on the console.
-                    Console.WriteLine("Text received : {0}", data);
-
-                    // Echo the data back to the client.
-                    byte[] msg = Encoding.ASCII.GetBytes(data);
-
-                    handler.Send(msg);
-                    handler.Shutdown(SocketShutdown.Both);
-                    handler.Close();
                 }
 
             }
@@ -91,14 +88,12 @@ namespace RST.Framework
             {
                 Console.WriteLine(e.ToString());
             }
-
-            Console.WriteLine("\nPress ENTER to continue...");
-            Console.Read();
         }
-        
-        private static void ExecuteCommand(string data)
+
+        private static string ExecuteCommand(string data)
         {
-            String[] parameters;            
+            String[] parameters;
+            string status = "";
 
             Logger.AddMessage(new LogMessage(data, "MyKey"));
 
@@ -115,7 +110,7 @@ namespace RST.Framework
                         FunctionCollection.AddHome();
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "addtarget":
 
@@ -128,7 +123,7 @@ namespace RST.Framework
                         FunctionCollection.AddTarget(parameters[1], x, y, z);
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "addtomain":
 
@@ -139,7 +134,7 @@ namespace RST.Framework
                         FunctionCollection.AddToMain();
                     }, null);
 
-                    break;
+                    return "none";
 
 
                 case "autoconfigurepath":
@@ -149,7 +144,7 @@ namespace RST.Framework
                         FunctionCollection.AutoConfigurePath(parameters[1]);
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "createpath":
 
@@ -158,7 +153,7 @@ namespace RST.Framework
                         FunctionCollection.CreatePath(parameters[1]);
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "createworkobj":
 
@@ -167,7 +162,7 @@ namespace RST.Framework
                         FunctionCollection.CreateWorkobject(); // edit Remove?
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "loadmodule":
 
@@ -176,7 +171,7 @@ namespace RST.Framework
                         FunctionCollection.LoadModuleFromFile(parameters[1]); // edit
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "loadstation":
 
@@ -185,7 +180,7 @@ namespace RST.Framework
                         FunctionCollection.Load(parameters[1]); // edit
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "synctostation":
 
@@ -194,7 +189,7 @@ namespace RST.Framework
                         FunctionCollection.SyncToStation();
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "synctovc":
 
@@ -203,7 +198,7 @@ namespace RST.Framework
                         FunctionCollection.SyncToVC();
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "runsimulation":
 
@@ -212,31 +207,46 @@ namespace RST.Framework
                         FunctionCollection.RunSimulation();
                     }, null);
 
-                    break;
+                    return "none";
 
                 case "checkcollisions":
 
                     FunctionCollection.MainThread.Send((object stat) =>
-                        {
-                            FunctionCollection.createCollisionSet(parameters[1],parameters[2]);
-                        }, null);
+                    {
+                        FunctionCollection.createCollisionSet(parameters[1], parameters[2]);
+                    }, null);
 
-                    break;
+                    return "none";
 
                 case "logg":
 
-                     FunctionCollection.MainThread.Send((object stat) =>
-                        {
-                            FunctionCollection.Logg();
-                        }, null);
+                    FunctionCollection.MainThread.Send((object stat) =>
+                    {
+                        FunctionCollection.Logg();
+                    }, null);
 
-                    break;
+                    return "none";
 
+                case "checkcontrollerstatus":
 
-                
+                    FunctionCollection.MainThread.Send((object stat) =>
+                    {
+                        status = FunctionCollection.checkControllerStatus();
+                    }, null);
+
+                    return status;
+                case "checksimulatorstatus":
+
+                    FunctionCollection.MainThread.Send((object stat) =>
+                    {
+                        status = FunctionCollection.checkControllerStatus();
+                    }, null);
+
+                    return status;
             }
+            return "0";
         }
-        
+
         public static String GetIpAddress(IPHostEntry host)
         {
             // Get computer host name
