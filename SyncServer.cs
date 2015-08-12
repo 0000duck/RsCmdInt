@@ -213,7 +213,8 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.createCollisionSet(parameters[1], parameters[2]);
+                        double nmDistance = double.Parse(parameters[3]);
+                        FunctionCollection.createCollisionSet(parameters[1], parameters[2], nmDistance);
                     }, null);
 
                     return "none";
@@ -222,10 +223,10 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.Logg();
+                        status = FunctionCollection.Logg();
                     }, null);
 
-                    return "none";
+                    return status;
 
                 case "checkcontrollerstatus":
 

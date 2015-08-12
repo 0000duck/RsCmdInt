@@ -343,16 +343,19 @@ namespace RST.Framework
             }
         }
 
-        public static void Logg()
+        public static string Logg()
         {
             LogMessage[] log;
+            string retString = ""; 
             log = Logger.GetMessages("Simulation");
             int i = log.GetLength(0);
             for (int j = 0; j < i; j++)
             {
                 Logger.AddMessage(new LogMessage(log[j].Text.ToString(), "MyKey"));
+                retString = retString + "\n" + log[j].Text.ToString();
             }
-
+            Logger.AddMessage(new LogMessage(retString, "MyKey"));
+            return retString;
         }
 
         public static void AutoConfigurePath(string pathName)
@@ -515,15 +518,15 @@ namespace RST.Framework
             }
         }
 
-        public static void createCollisionSet(string firstobjects, string secondobjects)
+        public static void createCollisionSet(string firstobjects, string secondobjects, double nmDistance)
         {
             Station station = Project.ActiveProject as Station;
-
+            nmDistance = nmDistance / 1000;
             CollisionSet cs = new CollisionSet();
             CollisionDetector.Collision += new CollisionEventHandler(myCollisionEventHandler);
-            cs.Name = "CollisionSet";
+            cs.Name = "CSet";
 
-            cs.NearMissDistance = 0.1;
+            cs.NearMissDistance = nmDistance;
 
             cs.Active = true;
 
@@ -576,12 +579,12 @@ namespace RST.Framework
             RsTask task = station.ActiveTask;
             RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)task.Parent;
 
-            return rsIrc5Controller.SystemState.ToString();
+            return "Controller: " + rsIrc5Controller.SystemState.ToString();
         }
 
         public static string checkSimulationStatus()
         {
-            return Simulator.State.ToString();
+            return "Simulator: " + Simulator.State.ToString();
         }
 
         public static string saveRapid(string filePath)
