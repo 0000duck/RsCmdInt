@@ -107,10 +107,10 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.AddHome();
+                        status = FunctionCollection.AddHome();
                     }, null);
 
-                    return "none";
+                    return status;
 
                 case "addtarget":
 
@@ -120,31 +120,10 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.AddTarget(parameters[1], x, y, z);
+                        status = FunctionCollection.AddTarget(parameters[1], x, y, z);
                     }, null);
 
-                    return "none";
-
-                case "addtomain":
-
-                    //int startIndex = Int
-
-                    FunctionCollection.MainThread.Send((object stat) =>
-                    {
-                        FunctionCollection.AddToMain();
-                    }, null);
-
-                    return "none";
-
-
-                case "autoconfigurepath":
-
-                    FunctionCollection.MainThread.Send((object stat) =>
-                    {
-                        FunctionCollection.AutoConfigurePath(parameters[1]);
-                    }, null);
-
-                    return "none";
+                    return status;
 
                 case "createpath":
 
@@ -195,28 +174,28 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.SyncToStation();
+                        status = FunctionCollection.SyncToStation();
                     }, null);
 
-                    return "none";
+                    return status;
 
                 case "synctovc":
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.SyncToVC();
+                        status = FunctionCollection.SyncToVC();
                     }, null);
 
-                    return "none";
+                    return status;
 
                 case "runsimulation":
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.RunSimulation();
+                        status = FunctionCollection.RunSimulation();
                     }, null);
 
-                    return "none";
+                    return status;
 
                 case "checkcollisions":
 

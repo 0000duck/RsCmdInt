@@ -107,6 +107,9 @@ namespace RST.Framework
                 docwindow.Control = gc;
                 docwindow.Caption = System.IO.Path.GetFileName(filepath);
                 UIEnvironment.Windows.Add(docwindow);
+                
+
+
                 string test = ABB.Robotics.RobotStudio.Controllers.ControllerType.StationVC.ToString();
 
                 Logger.AddMessage(new LogMessage(test, "MyKey"));
@@ -196,20 +199,15 @@ namespace RST.Framework
             }
         }
 
-        public static void AddTarget(string targetName, double x, double y, double z)
+        public static string AddTarget(string targetName, double x, double y, double z)
         {
             //Begin UndoStep
             Project.UndoContext.BeginUndoStep("CreateTarget");
 
             try
             {
-                // 
-                x = x / 1000;
-                y = y / 1000;
-                z = z / 1000;
-
                 // Adding target
-                ShowTarget(targetName, new Vector3(x, y, z));
+                ShowTarget(targetName, new Vector3((x/1000), (y/1000), (z/1000)));
             }
 
             catch (Exception exception)
@@ -222,6 +220,7 @@ namespace RST.Framework
                 //End UndoStep
                 Project.UndoContext.EndUndoStep();
             }
+            return "Added target: " + x + "; " + y + "; " + z ;
         }
 
         private static void DeleteActiveTargets()
@@ -242,7 +241,7 @@ namespace RST.Framework
             }
         }
 
-        public static void AddHome()
+        public static string AddHome()
         {
             Station station = Project.ActiveProject as Station;
 
@@ -262,40 +261,10 @@ namespace RST.Framework
             {
                 Logger.AddMessage(new LogMessage(exception.Message.ToString()));
             }
+            return "home added";
         }
 
-        public static void AddToMain()
-        {
-            Station station = Project.ActiveProject as Station;
-            string ep = station.ActiveTask.EntryPoint;
-            RsPathProcedure procMain;
-            Logger.AddMessage(new LogMessage(ep, "MyKey"));
-
-
-            try
-            {
-                //station.ActiveTask = "";
-
-                foreach (RsPathProcedure proc in station.ActiveTask.PathProcedures)
-                {
-
-
-                    Logger.AddMessage(new LogMessage(proc.ToString(), "MyKey"));
-                    procMain = (RsPathProcedure)proc.Copy();
-
-                }
-
-
-
-            }
-
-            catch (Exception exception)
-            {
-                Logger.AddMessage(new LogMessage(exception.Message.ToString()));
-            }
-        }
-
-        public static void SyncToStation()
+        public static string SyncToStation()
         {
             Station station = Project.ActiveProject as Station;
             RsTask task = station.ActiveTask;
@@ -327,15 +296,15 @@ namespace RST.Framework
 
                     }
                 }
-
             }
             catch (Exception ex)
             {
                 Logger.AddMessage(new LogMessage(ex.Message.ToString()));
             }
+            return "Synced to station";
         }
 
-        public static void RunSimulation()
+        public static string RunSimulation()
         {
             Station station = Project.ActiveProject as Station;
 
@@ -348,6 +317,7 @@ namespace RST.Framework
             {
                 Logger.AddMessage(new LogMessage(exception.Message.ToString()));
             }
+            return "Simulator: Started";
         }
 
         public static string Logg()
@@ -365,28 +335,7 @@ namespace RST.Framework
             return retString;
         }
 
-        public static void AutoConfigurePath(string pathName)
-        {
-            Station station = Project.ActiveProject as Station;
-            RsPathProcedure path = new RsPathProcedure(pathName);
-
-            try
-            {
-                path = station.ActiveTask.FindPathProcedureFromModuleScope(pathName, "module1");
-
-                path.Synchronize = true;
-
-                Logger.AddMessage(new LogMessage(path.Name, "MyKey"));
-
-            }
-
-            catch (Exception exception)
-            {
-                Logger.AddMessage(new LogMessage(exception.Message.ToString()));
-            }
-        }
-
-        public static void SyncToVC()
+        public static string SyncToVC()
         {
             Station station = Project.ActiveProject as Station;
             RsTask task = station.ActiveTask;
@@ -427,12 +376,12 @@ namespace RST.Framework
                         }
                     }
                 }
-                //SyncToStation();
             }
             catch (Exception ex)
             {
                 Logger.AddMessage(new LogMessage(ex.Message.ToString()));
             }
+            return "Synced to VC";
         }
 
         private static void ShowTarget(string targetName, Vector3 position)
@@ -469,7 +418,7 @@ namespace RST.Framework
             }
         }
 
-        public static void CreatePath(string procedureName)
+        public static string CreatePath(string procedureName)
         {
             Project.UndoContext.BeginUndoStep("RsPathProcedure Create");
 
@@ -487,8 +436,6 @@ namespace RST.Framework
                 myPath.ShowName = true;
                 myPath.Synchronize = true;
                 myPath.Visible = true;
-
-
 
                 //Make the path procedure as active path procedure
                 station.ActiveTask.ActivePathProcedure = myPath;
@@ -510,8 +457,6 @@ namespace RST.Framework
                 SyncDirection.ToController,
                 messages);
 
-
-
                 targets.Clear();
             }
             catch (Exception ex)
@@ -523,6 +468,7 @@ namespace RST.Framework
             {
                 Project.UndoContext.EndUndoStep();
             }
+            return "Path " + procedureName + " created";
         }
 
         public static void createCollisionSet(string firstobjects, string secondobjects, double nmDistance)
