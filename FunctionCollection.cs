@@ -96,7 +96,6 @@ namespace RST.Framework
 
         public static void Load(string stationFilepath)
         {
-            string filepath = @"";
             Station station = Station.Load(stationFilepath, false);
             if (station != null)
             {
@@ -105,7 +104,7 @@ namespace RST.Framework
                 gc.RootObject = station;
                 DocumentWindow docwindow = new DocumentWindow();
                 docwindow.Control = gc;
-                docwindow.Caption = System.IO.Path.GetFileName(filepath);
+                docwindow.Caption = System.IO.Path.GetFileName("View");
                 UIEnvironment.Windows.Add(docwindow);
                 string test = ABB.Robotics.RobotStudio.Controllers.ControllerType.StationVC.ToString();
 
@@ -123,6 +122,8 @@ namespace RST.Framework
         public static string CloseStation()
         {
             Station station = Project.ActiveProject as Station;
+            DocumentWindow.ActiveDocumentWindow.Close();
+            Logger.Clear();
             station.Close();
             return "true";
         }
@@ -353,13 +354,17 @@ namespace RST.Framework
         public static string Logg()
         {
             LogMessage[] log;
-            string retString = ""; 
-            log = Logger.GetMessages("Simulation");
+            string retString = "";
+            log = Logger.GetMessages();
             int i = log.GetLength(0);
             for (int j = 0; j < i; j++)
             {
-                Logger.AddMessage(new LogMessage(log[j].Text.ToString(), "MyKey"));
-                retString = retString + "\n" + log[j].Text.ToString();
+                if (log[j].Severity == LogMessageSeverity.Warning || log[j].Severity == LogMessageSeverity.Error)
+                {
+                    Logger.AddMessage(new LogMessage(log[j].Text.ToString(), "MyKey"));
+                    retString = retString + "\n" + log[j].Text.ToString();
+                }
+            
             }
             Logger.AddMessage(new LogMessage(retString, "MyKey"));
             return retString;
