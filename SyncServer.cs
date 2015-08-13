@@ -182,6 +182,15 @@ namespace RST.Framework
 
                     return "none";
 
+                case "closestation":
+
+                    FunctionCollection.MainThread.Send((object stat) =>
+                    {
+                        status = FunctionCollection.CloseStation();
+                    }, null);
+
+                    return status;
+
                 case "synctostation":
 
                     FunctionCollection.MainThread.Send((object stat) =>
@@ -241,6 +250,15 @@ namespace RST.Framework
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
                         status = FunctionCollection.checkSimulationStatus();
+                    }, null);
+
+                    return status;
+
+                case "resetstation":
+
+                    FunctionCollection.MainThread.Send((object stat) =>
+                    {
+                        status = FunctionCollection.saveRapid(parameters[1]);
                     }, null);
 
                     return status;

@@ -120,6 +120,13 @@ namespace RST.Framework
             //DelayTask();                                    
         }
 
+        public static string CloseStation()
+        {
+            Station station = Project.ActiveProject as Station;
+            station.Close();
+            return "true";
+        }
+
         public static void LoadModuleFromFile(string moduleFilePath)
         {
             //Get Station object           
@@ -599,10 +606,13 @@ namespace RST.Framework
                 ABB.Robotics.Controllers.Controller controller = new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
 
                 Task controllerTask = controller.Rapid.GetTask(rsTask.Name);
-                Directory.CreateDirectory(filePath);
+                if(!Directory.Exists(filePath))
+                    Directory.CreateDirectory(filePath);
+                filePath = filePath + @"\";
                 int i = 1;
-                while(File.Exists(filePath + "-simulation-" + i)){ i++;}
-                controllerTask.SaveProgramToFile(filePath + "-simulation-" + i);
+                while(File.Exists(filePath + "simulation-" + i)){ i++;}
+                Directory.CreateDirectory(filePath + "simulation-" + i);
+                controllerTask.SaveProgramToFile(filePath + "simulation-" + i);
                 result = "true";
             }
             catch (ABB.Robotics.GeneralException)
@@ -617,17 +627,24 @@ namespace RST.Framework
 
         }
 
-
-        public static string resetStation()
+        public static string resetStation(string filePath)
         {
-            Station station = Project.ActiveProject as Station;
-            RsTask rsTask = station.ActiveTask;
-            RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)rsTask.Parent;
+            string result = "false";
+            try
+            {
+                saveRapid(filePath);
+                result = "true";
+            }
 
-            ABB.Robotics.Controllers.Controller controller = new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
-
-            Task controllerTask = controller.Rapid.GetTask(rsTask.Name);
-            return "true";
+            catch (ABB.Robotics.GeneralException)
+            {
+                result = "false";
+            }
+            catch (Exception)
+            {
+                result = "false";
+            }
+            return result;
         }
     }
 }
