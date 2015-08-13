@@ -129,16 +129,16 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.CreatePath(parameters[1]);
+                        status = FunctionCollection.CreatePath(parameters[1]);
                     }, null);
 
-                    return "none";
+                    return status;
 
                 case "createworkobj":
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.CreateWorkobject(); // edit Remove?
+                        FunctionCollection.CreateWorkobject();
                     }, null);
 
                     return "none";
@@ -147,19 +147,19 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.LoadModuleFromFile(parameters[1]); // edit
+                        status = FunctionCollection.LoadModuleFromFile(parameters[1]);
                     }, null);
 
-                    return "none";
+                    return status;
 
                 case "loadstation":
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        FunctionCollection.Load(parameters[1]); // edit
+                        status = FunctionCollection.LoadStation(parameters[1]);
                     }, null);
 
-                    return "none";
+                    return status;
 
                 case "closestation":
 
@@ -202,10 +202,10 @@ namespace RST.Framework
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
                         double nmDistance = double.Parse(parameters[3]);
-                        FunctionCollection.createCollisionSet(parameters[1], parameters[2], nmDistance);
+                        status = FunctionCollection.createCollisionSet(parameters[1], parameters[2], nmDistance);
                     }, null);
 
-                    return "none";
+                    return status;
 
                 case "logg":
 

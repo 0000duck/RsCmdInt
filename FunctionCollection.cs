@@ -94,9 +94,8 @@ namespace RST.Framework
             e.Enabled = true;
         }
 
-        public static void Load(string stationFilepath)
+        public static string LoadStation(string stationFilepath)
         {
-            string filepath = @"";
             Station station = Station.Load(stationFilepath, false);
             if (station != null)
             {
@@ -105,32 +104,29 @@ namespace RST.Framework
                 gc.RootObject = station;
                 DocumentWindow docwindow = new DocumentWindow();
                 docwindow.Control = gc;
-                docwindow.Caption = System.IO.Path.GetFileName(filepath);
-                UIEnvironment.Windows.Add(docwindow);
-                
-
-
+                docwindow.Caption = System.IO.Path.GetFileName("View");
+                UIEnvironment.Windows.Add(docwindow);                
                 string test = ABB.Robotics.RobotStudio.Controllers.ControllerType.StationVC.ToString();
 
                 Logger.AddMessage(new LogMessage(test, "MyKey"));
-
-
             }
 
             RsTask task = station.ActiveTask;
             RsIrc5Controller rscontroller = (RsIrc5Controller)task.Parent;
-            //while (rscontroller.SystemState.ToString() != "Started")
-            //DelayTask();                                    
+
+            return "Loading station: " + stationFilepath;
         }
 
         public static string CloseStation()
         {
             Station station = Project.ActiveProject as Station;
+            DocumentWindow.ActiveDocumentWindow.Close();
+            Logger.Clear();
             station.Close();
-            return "true";
+            return "Closing station";
         }
 
-        public static void LoadModuleFromFile(string moduleFilePath)
+        public static string LoadModuleFromFile(string moduleFilePath)
         {
             //Get Station object           
             Station station = Project.ActiveProject as Station;
@@ -177,6 +173,7 @@ namespace RST.Framework
                 }
 
             }
+            return "Loading module: " + moduleFilePath;
         }
 
         public static void CreateWorkobject()
@@ -221,24 +218,6 @@ namespace RST.Framework
                 Project.UndoContext.EndUndoStep();
             }
             return "Added target: " + x + "; " + y + "; " + z ;
-        }
-
-        private static void DeleteActiveTargets()
-        {
-            Station station = Project.ActiveProject as Station;
-
-            try
-            {
-                foreach (RsTarget target in station.ActiveTask.Targets)
-                {
-                    station.ActiveTask.Targets.Remove(target);
-                }
-            }
-
-            catch (Exception exception)
-            {
-                Logger.AddMessage(new LogMessage(exception.Message.ToString()));
-            }
         }
 
         public static string AddHome()
@@ -323,13 +302,17 @@ namespace RST.Framework
         public static string Logg()
         {
             LogMessage[] log;
-            string retString = ""; 
-            log = Logger.GetMessages("Simulation");
+            string retString = "";
+            log = Logger.GetMessages();
             int i = log.GetLength(0);
             for (int j = 0; j < i; j++)
             {
-                Logger.AddMessage(new LogMessage(log[j].Text.ToString(), "MyKey"));
-                retString = retString + "\n" + log[j].Text.ToString();
+                if (log[j].Severity == LogMessageSeverity.Warning || log[j].Severity == LogMessageSeverity.Error)
+                {
+                    Logger.AddMessage(new LogMessage(log[j].Text.ToString(), "MyKey"));
+                    retString = retString + "\n" + log[j].Text.ToString();
+                }
+            
             }
             Logger.AddMessage(new LogMessage(retString, "MyKey"));
             return retString;
@@ -471,7 +454,7 @@ namespace RST.Framework
             return "Path " + procedureName + " created";
         }
 
-        public static void createCollisionSet(string firstobjects, string secondobjects, double nmDistance)
+        public static string createCollisionSet(string firstobjects, string secondobjects, double nmDistance)
         {
             Station station = Project.ActiveProject as Station;
             nmDistance = nmDistance / 1000;
@@ -494,6 +477,8 @@ namespace RST.Framework
 
             CollisionDetector.CheckCollisions(station);
             CollisionDetector.CheckCollisions(cs);
+
+            return "Checking collisions";
         }
 
         private static void myCollisionEventHandler(object sender, CollisionEventArgs e)
