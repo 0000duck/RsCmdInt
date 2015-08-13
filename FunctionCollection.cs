@@ -610,7 +610,7 @@ namespace RST.Framework
                     Directory.CreateDirectory(filePath);
                 filePath = filePath + @"\";
                 int i = 1;
-                while(File.Exists(filePath + "simulation-" + i)){ i++;}
+                while(Directory.Exists(filePath + "simulation-" + i)){ i++;}
                 Directory.CreateDirectory(filePath + "simulation-" + i);
                 controllerTask.SaveProgramToFile(filePath + "simulation-" + i);
                 result = "true";
