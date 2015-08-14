@@ -215,6 +215,16 @@ namespace RST.Framework
 
                     return status;
 
+                case "saverapid":
+
+                    FunctionCollection.MainThread.Send((object stat) =>
+                    {
+                        status = FunctionCollection.SaveRapid(parameters[1]);
+                    }, null);
+
+                    return status;
+
+
                 default:
                     return "error";
             }            
