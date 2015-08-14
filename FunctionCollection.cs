@@ -176,26 +176,6 @@ namespace RST.Framework
             return "Loading module: " + moduleFilePath;
         }
 
-        public static void CreateWorkobject()
-        {
-            try
-            {
-                //get the active station
-                Station station = Project.ActiveProject as Station;
-                string moduleName = "myModule";
-
-                //create Workobject
-                RsWorkObject wobj = new RsWorkObject();
-                wobj.Name = station.ActiveTask.GetValidRapidName("wobj", "_", 1);
-                wobj.ModuleName = moduleName;
-                station.ActiveTask.DataDeclarations.Add(wobj);
-            }
-            catch (Exception exception)
-            {
-                Logger.AddMessage(new LogMessage(exception.Message.ToString()));
-            }
-        }
-
         public static string AddTarget(string targetName, double x, double y, double z)
         {
             //Begin UndoStep
@@ -243,46 +223,6 @@ namespace RST.Framework
             return "Added robot home";
         }
 
-        public static string SyncToStation()
-        {
-            Station station = Project.ActiveProject as Station;
-            RsTask task = station.ActiveTask;
-
-            try
-            {
-                RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)task.Parent;
-                //Get Controller object
-                ABB.Robotics.Controllers.Controller controller =
-                    new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
-
-                //Request for Mastership from controller  
-                //If granted then call SyncPathProcedure instance method of RsTask      
-
-                using (ABB.Robotics.Controllers.Mastership m =
-                    ABB.Robotics.Controllers.Mastership.Request(controller.Rapid))
-                {
-                    try
-                    {
-                        ArrayList messages = new ArrayList();
-
-                        //Synchronization to Station 
-                        task.SyncPathProcedure("module1" + "/" + "main",
-                            SyncDirection.ToStation,
-                            messages);
-                    }
-                    catch (Exception)
-                    {
-
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.AddMessage(new LogMessage(ex.Message.ToString()));
-            }
-            return "Synced to station";
-        }
-
         public static string RunSimulation()
         {
             Station station = Project.ActiveProject as Station;
@@ -299,7 +239,7 @@ namespace RST.Framework
             return "Simulator: Started";
         }
 
-        public static string Logg()
+        public static string GetLog()
         {
             LogMessage[] log;
             string retString = "";
@@ -316,55 +256,6 @@ namespace RST.Framework
             }
             Logger.AddMessage(new LogMessage(retString, "MyKey"));
             return retString;
-        }
-
-        public static string SyncToVC()
-        {
-            Station station = Project.ActiveProject as Station;
-            RsTask task = station.ActiveTask;
-
-            try
-            {
-                foreach (RsPathProcedure path in station.ActiveTask.PathProcedures)
-                {
-
-                    path.Synchronize = true;
-                    //Get reference to instance of RsIrc5Controller    
-
-                    RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)task.Parent;
-                    //Get virtual controller instance from RsIrc5Controller instance
-                    ABB.Robotics.Controllers.Controller controller =
-                        new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
-
-
-                    //Request for Mastership from controller  
-                    //If granted then call SyncPathProcedure instance method of RsTask    
-
-                    using (ABB.Robotics.Controllers.Mastership m =
-                        ABB.Robotics.Controllers.Mastership.Request(controller.Rapid))
-                    {
-                        try
-                        {
-                            ArrayList messages = new ArrayList();
-                            task.SyncPathProcedure(path.ModuleName + "/" + path.Name,
-                                SyncDirection.ToController,
-                                messages);
-
-
-
-                        }
-                        catch (Exception)
-                        {
-
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.AddMessage(new LogMessage(ex.Message.ToString()));
-            }
-            return "Synced to VC";
         }
 
         private static void ShowTarget(string targetName, Vector3 position)
@@ -454,12 +345,12 @@ namespace RST.Framework
             return "Path " + procedureName + " created";
         }
 
-        public static string createCollisionSet(string firstobjects, string secondobjects, double nmDistance)
+        public static string CreateCollisionSet(string firstobjects, string secondobjects, double nmDistance)
         {
             Station station = Project.ActiveProject as Station;
             nmDistance = nmDistance / 1000;
             CollisionSet cs = new CollisionSet();
-            CollisionDetector.Collision += new CollisionEventHandler(myCollisionEventHandler);
+            CollisionDetector.Collision += new CollisionEventHandler(MyCollisionEventHandler);
             cs.Name = "CSet";
 
             cs.NearMissDistance = nmDistance;
@@ -481,7 +372,7 @@ namespace RST.Framework
             return "Checking collisions";
         }
 
-        private static void myCollisionEventHandler(object sender, CollisionEventArgs e)
+        private static void MyCollisionEventHandler(object sender, CollisionEventArgs e)
         {
             switch (e.CollisionEvent)
             {
@@ -511,7 +402,7 @@ namespace RST.Framework
             }
         }
 
-        public static string checkControllerStatus()
+        public static string CheckControllerStatus()
         {
             Station station = Station.ActiveStation as Station;
             RsTask task = station.ActiveTask;
@@ -520,12 +411,12 @@ namespace RST.Framework
             return "Controller: " + rsIrc5Controller.SystemState.ToString();
         }
 
-        public static string checkSimulationStatus()
+        public static string CheckSimulationStatus()
         {
             return "Simulator: " + Simulator.State.ToString();
         }
 
-        public static string saveRapid(string filePath)
+        public static string SaveRapid(string filePath)
         {
             string result = "false";
             try
@@ -541,10 +432,13 @@ namespace RST.Framework
 
                 if(!Directory.Exists(filePath))
                     Directory.CreateDirectory(filePath);
+                
                 filePath = filePath + @"\";
                 int i = 1;
+                
                 while(Directory.Exists(filePath + "simulation-" + i)){ i++;}
                 Directory.CreateDirectory(filePath + "simulation-" + i);                
+                
                 controllerTask.SaveProgramToFile(filePath + "simulation-" + i);                
                 result = "true";
             }
@@ -560,12 +454,12 @@ namespace RST.Framework
 
         }
 
-        public static string resetStation(string filePath)
+        public static string ResetStation(string filePath)
         {
             string result = "false";
             try
             {
-                saveRapid(filePath);
+                SaveRapid(filePath);
                 result = "true";
             }
 

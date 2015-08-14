@@ -134,15 +134,6 @@ namespace RST.Framework
 
                     return status;
 
-                case "createworkobj":
-
-                    FunctionCollection.MainThread.Send((object stat) =>
-                    {
-                        FunctionCollection.CreateWorkobject();
-                    }, null);
-
-                    return "none";
-
                 case "loadmodule":
 
                     FunctionCollection.MainThread.Send((object stat) =>
@@ -170,24 +161,6 @@ namespace RST.Framework
 
                     return status;
 
-                case "synctostation":
-
-                    FunctionCollection.MainThread.Send((object stat) =>
-                    {
-                        status = FunctionCollection.SyncToStation();
-                    }, null);
-
-                    return status;
-
-                case "synctovc":
-
-                    FunctionCollection.MainThread.Send((object stat) =>
-                    {
-                        status = FunctionCollection.SyncToVC();
-                    }, null);
-
-                    return status;
-
                 case "runsimulation":
 
                     FunctionCollection.MainThread.Send((object stat) =>
@@ -202,16 +175,16 @@ namespace RST.Framework
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
                         double nmDistance = double.Parse(parameters[3]);
-                        status = FunctionCollection.createCollisionSet(parameters[1], parameters[2], nmDistance);
+                        status = FunctionCollection.CreateCollisionSet(parameters[1], parameters[2], nmDistance);
                     }, null);
 
                     return status;
 
-                case "logg":
+                case "getlog":
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        status = FunctionCollection.Logg();
+                        status = FunctionCollection.GetLog();
                     }, null);
 
                     return status;
@@ -220,7 +193,7 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        status = FunctionCollection.checkControllerStatus();
+                        status = FunctionCollection.CheckControllerStatus();
                     }, null);
 
                     return status;
@@ -228,7 +201,7 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        status = FunctionCollection.checkSimulationStatus();
+                        status = FunctionCollection.CheckSimulationStatus();
                     }, null);
 
                     return status;
@@ -237,7 +210,7 @@ namespace RST.Framework
 
                     FunctionCollection.MainThread.Send((object stat) =>
                     {
-                        status = FunctionCollection.saveRapid(parameters[1]);
+                        status = FunctionCollection.SaveRapid(parameters[1]);
                     }, null);
 
                     return status;
