@@ -240,7 +240,7 @@ namespace RST.Framework
             {
                 Logger.AddMessage(new LogMessage(exception.Message.ToString()));
             }
-            return "home added";
+            return "Added robot home";
         }
 
         public static string SyncToStation()
@@ -537,13 +537,15 @@ namespace RST.Framework
                 ABB.Robotics.Controllers.Controller controller = new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
 
                 Task controllerTask = controller.Rapid.GetTask(rsTask.Name);
+                string name = controllerTask.Name;                
+
                 if(!Directory.Exists(filePath))
                     Directory.CreateDirectory(filePath);
                 filePath = filePath + @"\";
                 int i = 1;
                 while(Directory.Exists(filePath + "simulation-" + i)){ i++;}
-                Directory.CreateDirectory(filePath + "simulation-" + i);
-                controllerTask.SaveProgramToFile(filePath + "simulation-" + i);
+                Directory.CreateDirectory(filePath + "simulation-" + i);                
+                controllerTask.SaveProgramToFile(filePath + "simulation-" + i);                
                 result = "true";
             }
             catch (ABB.Robotics.GeneralException)
