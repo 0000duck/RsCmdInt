@@ -224,10 +224,10 @@ namespace RST.Framework
 
                     return status;
 
-
                 default:
-                    return "error";
-            }            
+                    return "0";
+
+            }
         }
 
         public static String GetIpAddress(IPHostEntry host)

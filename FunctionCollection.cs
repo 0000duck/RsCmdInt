@@ -418,7 +418,7 @@ namespace RST.Framework
 
         public static string SaveRapid(string filePath)
         {
-            string result = "false";
+            string result = "Rapid saved: false";
             try
             {
                 Station station = Project.ActiveProject as Station;
@@ -426,7 +426,6 @@ namespace RST.Framework
                 RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)rsTask.Parent;
 
                 ABB.Robotics.Controllers.Controller controller = new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
-
                 Task controllerTask = controller.Rapid.GetTask(rsTask.Name);
                 string name = controllerTask.Name;                
 
@@ -436,22 +435,27 @@ namespace RST.Framework
                 filePath = filePath + @"\";
                 int i = 1;
                 
-                while(Directory.Exists(filePath + "simulation-" + i)){ i++;}
-                Directory.CreateDirectory(filePath + "simulation-" + i);                
                 
-                controllerTask.SaveProgramToFile(filePath + "simulation-" + i);                
-                result = "true";
+                while(Directory.Exists(filePath + "simulation-" + i)){ i++;}
+                Directory.CreateDirectory(filePath + "simulation-" + i);
+
+                Module mod = controllerTask.GetModule("module1");
+                //mod.SaveToFile(filePath + "simulation-" + i);
+                
+
+
+                //controllerTask.SaveProgramToFile(filePath + "simulation-" + i);                
+                result = "Rapid saved: true";
             }
-            catch (ABB.Robotics.GeneralException)
+            catch (ABB.Robotics.GeneralException gex)
             {
-                result = "false";
+                Logger.AddMessage(new LogMessage(gex.Message.ToString()));               
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                result = "false";
+                Logger.AddMessage(new LogMessage(ex.Message.ToString()));                
             }
             return result;
-
         }
 
         public static string ResetStation(string filePath)
