@@ -143,6 +143,15 @@ namespace RST.Framework
 
                     return status;
 
+                case "loadprogram":
+
+                    FunctionCollection.MainThread.Send((object stat) =>
+                    {
+                        FunctionCollection.LoadProgramFromFile(parameters[1]);
+                    }, null);
+
+                    return status;
+
                 case "loadstation":
 
                     FunctionCollection.MainThread.Send((object stat) =>

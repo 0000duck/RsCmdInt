@@ -352,7 +352,6 @@ namespace RST.Framework
             CollisionSet cs = new CollisionSet();
             CollisionDetector.Collision += new CollisionEventHandler(MyCollisionEventHandler);
             cs.Name = "CSet";
-
             cs.NearMissDistance = nmDistance;
 
             cs.Active = true;
@@ -368,7 +367,6 @@ namespace RST.Framework
 
             CollisionDetector.CheckCollisions(station);
             CollisionDetector.CheckCollisions(cs);
-
             return "Checking collisions";
         }
 
@@ -381,6 +379,7 @@ namespace RST.Framework
                     (new LogMessage("Collision started by collision set: '" + e.CollisionSet.Name
                     + "' First part : '" + e.FirstPart.Name
                     + "' Second part: '" + e.SecondPart.Name + "'"));
+                    
                     break;
                 case CollisionEvent.CollisionEnded:
                     Logger.AddMessage(new LogMessage("Collision ended by collision set: '" + e.CollisionSet.Name
@@ -416,6 +415,74 @@ namespace RST.Framework
             return "Simulator: " + Simulator.State.ToString();
         }
 
+        public static bool LoadProgramFromFile(string filePath)
+        {
+            bool result = false;
+            Project.UndoContext.BeginUndoStep("LoadProgramFromFile");
+            //Get Station object            
+            #region LoadProgramFromFileStep1
+            Station station = Project.ActiveProject as Station;
+            #endregion
+
+            //Check for existance of Program 
+            if (System.IO.File.Exists(filePath))
+            {
+                try
+                {
+                    RsTask task = station.ActiveTask;
+
+                    if (task != null)
+                    {
+                        //Get RsIrc5Controller instance    
+                        #region LoadProgramFromFileStep2
+                        RsIrc5Controller rsIrc5Controller = (RsIrc5Controller)task.Parent;
+                        //Get virtual controller instance from  RsIrc5Controller
+                        ABB.Robotics.Controllers.Controller controller =
+                            new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
+                        //get task
+                        ABB.Robotics.Controllers.RapidDomain.Task vTask = controller.Rapid.GetTask(task.Name);
+                        #endregion
+
+                        //Request Mastership         
+                        #region LoadProgramFromFileStep3
+                        using (ABB.Robotics.Controllers.Mastership m =
+                            ABB.Robotics.Controllers.Mastership.Request(controller.Rapid))
+                        #endregion
+                        {
+                            if (controller.Rapid.ExecutionStatus ==
+                                      ABB.Robotics.Controllers.RapidDomain.ExecutionStatus.Stopped)
+                            {
+                                //Load Program if Rapid Execution is stopped    
+                                #region LoadProgramFromFileStep4
+                                vTask.LoadProgramFromFile(filePath,
+                                                      ABB.Robotics.Controllers.RapidDomain.RapidLoadMode.Replace);
+                                #endregion
+                                System.Threading.Thread.Sleep(1000);
+                                result = true;
+                            }
+                        }
+                    }
+                }
+                catch (ABB.Robotics.GeneralException gex)
+                {
+                    Logger.AddMessage(new LogMessage(gex.Message.ToString()));
+                    Project.UndoContext.CancelUndoStep(CancelUndoStepType.Rollback);
+                    result = false;
+                }
+                catch (Exception ex)
+                {
+                    Logger.AddMessage(new LogMessage(ex.Message.ToString()));
+                    Project.UndoContext.CancelUndoStep(CancelUndoStepType.Rollback);
+                    result = false;
+                }
+                finally
+                {
+                    Project.UndoContext.EndUndoStep();
+                }
+            }
+            return result;
+        }
+
         public static string SaveRapid(string filePath)
         {
             string result = "Rapid saved: false";
@@ -427,24 +494,17 @@ namespace RST.Framework
 
                 ABB.Robotics.Controllers.Controller controller = new ABB.Robotics.Controllers.Controller(new Guid(rsIrc5Controller.SystemId.ToString()));
                 Task controllerTask = controller.Rapid.GetTask(rsTask.Name);
-                string name = controllerTask.Name;                
-
+                string name = controllerTask.Name; 
+                
                 if(!Directory.Exists(filePath))
                     Directory.CreateDirectory(filePath);
                 
                 filePath = filePath + @"\";
                 int i = 1;
                 
-                
                 while(Directory.Exists(filePath + "simulation-" + i)){ i++;}
-                Directory.CreateDirectory(filePath + "simulation-" + i);
-
-                Module mod = controllerTask.GetModule("module1");
-                //mod.SaveToFile(filePath + "simulation-" + i);
-                
-
-
-                //controllerTask.SaveProgramToFile(filePath + "simulation-" + i);                
+                Directory.CreateDirectory(filePath + "simulation-" + i);     
+                controllerTask.SaveProgramToFile(filePath + "simulation-" + i);                
                 result = "Rapid saved: true";
             }
             catch (ABB.Robotics.GeneralException gex)
