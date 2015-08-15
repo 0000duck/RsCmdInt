@@ -349,25 +349,49 @@ namespace RST.Framework
         {
             Station station = Project.ActiveProject as Station;
             nmDistance = nmDistance / 1000;
-            CollisionSet cs = new CollisionSet();
-            CollisionDetector.Collision += new CollisionEventHandler(MyCollisionEventHandler);
-            cs.Name = "CSet";
-            cs.NearMissDistance = nmDistance;
-
-            cs.Active = true;
-
-            station.CollisionSets.Add(cs);
-
 
             GraphicComponent a, b;
             station.GraphicComponents.TryGetGraphicComponent(firstobjects, out a);
             station.GraphicComponents.TryGetGraphicComponent(secondobjects, out b);
+            Vector3 aPoint,bPoint;
+
+            CollisionType colType = CollisionDetector.CheckCollision(a, b, nmDistance);
+            switch (colType)
+            {
+                case CollisionType.Collision:
+                    Logger.AddMessage(new LogMessage("Part: " + a.Name + " and part: " + b.Name + " is colliding!"));
+                    break;
+                case CollisionType.NearMiss:
+                    Logger.AddMessage(new LogMessage("There is a near miss between part: " + a.Name + " and part: " + b.Name + "."));
+                    Logger.AddMessage(new LogMessage("The distance between them are: "
+                   + CollisionDetector.MinimumDistance(a, b, out aPoint, out bPoint)));
+                    Logger.AddMessage(new LogMessage("The closest points are: "));
+                    Logger.AddMessage(new LogMessage("For part: " + a.Name + " x: " + aPoint.x
+                        + " y: " + aPoint.y + " z: " + aPoint.z));
+                    Logger.AddMessage(new LogMessage("For part: " + b.Name + " x: " + bPoint.x
+                        + " y: " + bPoint.y + " z: " + bPoint.z));
+                    break;
+                case CollisionType.None:
+                    Logger.AddMessage(new LogMessage("No collisions!"));
+                    break;
+            }
+
+            CollisionDetector.Collision += new CollisionEventHandler(MyCollisionEventHandler);
+            CollisionSet cs = new CollisionSet();
+            cs.Name = "CSet";
+            cs.NearMissDistance = nmDistance;
+
+            cs.Active = true;
+            station.CollisionSets.Add(cs);
+
+
+
             cs.FirstGroup.Add(a);
             cs.SecondGroup.Add(b);
-
+                    
             CollisionDetector.CheckCollisions(station);
             CollisionDetector.CheckCollisions(cs);
-            return "Checking collisions";
+            return "Collisionset Created. Checking collisions.";
         }
 
         private static void MyCollisionEventHandler(object sender, CollisionEventArgs e)
@@ -377,8 +401,8 @@ namespace RST.Framework
                 case CollisionEvent.CollisionStarted:
                     Logger.AddMessage
                     (new LogMessage("Collision started by collision set: '" + e.CollisionSet.Name
-                    + "' First part : '" + e.FirstPart.Name
-                    + "' Second part: '" + e.SecondPart.Name + "'"));
+                    + "' First part : '" + e.FirstPart.Name + 
+                     "' Second part: '" + e.SecondPart.Name + "'"));
                     
                     break;
                 case CollisionEvent.CollisionEnded:
@@ -505,7 +529,7 @@ namespace RST.Framework
                 while(Directory.Exists(filePath + "simulation-" + i)){ i++;}
                 Directory.CreateDirectory(filePath + "simulation-" + i);     
                 controllerTask.SaveProgramToFile(filePath + "simulation-" + i);                
-                result = "Rapid saved: true";
+                result = filePath+ "simulation-" + i;
             }
             catch (ABB.Robotics.GeneralException gex)
             {
